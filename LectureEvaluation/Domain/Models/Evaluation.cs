@@ -1,6 +1,8 @@
+using LectureEvaluation.Domain.Repositories;
+
 namespace LectureEvaluation.Domain.Models;
 
-public class Evaluation
+public class Evaluation : IEntity
 {
     public int Id { get; set; }
     
