@@ -1,5 +1,6 @@
 using LectureEvaluation.Domain.Repositories;
 using LectureEvaluation.Infrastructure.MockRepositories;
+using Microsoft.Extensions.FileSystemGlobbing.Internal.Patterns;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,7 @@ builder.Services.AddControllers();
 
 builder.Services.AddSingleton<IEvaluationRepository, MockEvaluationRepository>();
 builder.Services.AddSingleton<ILectureRepository, MockLectureRepository>();
+builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 
 var app = builder.Build();
 

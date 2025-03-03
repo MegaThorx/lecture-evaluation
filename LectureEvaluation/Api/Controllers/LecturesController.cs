@@ -1,25 +1,24 @@
 using LectureEvaluation.Domain.Models;
 using LectureEvaluation.Domain.Repositories;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LectureEvaluation.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class LecturesController(ILectureRepository lectureRepository) : ControllerBase
+public class LecturesController(ILectureRepository lectureRepository, IEvaluationRepository evaluationRepository) : ControllerBase
 {
     [HttpGet]
-    [ProducesResponseType(200, Type = typeof(IEnumerable<Lecture>))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Lecture>))]
     public async Task<ActionResult<IEnumerable<Lecture>>> GetAll()
     {
         return Ok(await lectureRepository.FindAllAsync());
     }
     
     [HttpGet("{id}")]
-    [ProducesResponseType(200, Type = typeof(Lecture))]
-    [ProducesResponseType(400)]
-    [ProducesResponseType(404)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Lecture))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Lecture>> Get(int id)
     {
         var lecture = await lectureRepository.FindByIdAsync(id);
@@ -29,10 +28,26 @@ public class LecturesController(ILectureRepository lectureRepository) : Controll
         
         return Ok(lecture);
     }
+    
+    [HttpGet("{id}/evaluations")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Evaluation>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IEnumerable<Evaluation>>> GetAllEvaluations(int id)
+    {
+        var lecture = await lectureRepository.FindByIdAsync(id);
+        
+        if (lecture is null)
+            return NotFound();
+        
+        var evaluations = await evaluationRepository.FindByLectureAsync(lecture.Id);
+        
+        return Ok(evaluations);
+    }
 
     [HttpPost]
-    [ProducesResponseType(201, Type = typeof(Lecture))]
-    [ProducesResponseType(400)]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(Lecture))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Lecture>> Post(Lecture lecture)
     {
         var newLecture = await lectureRepository.AddAsync(lecture);
@@ -40,9 +55,9 @@ public class LecturesController(ILectureRepository lectureRepository) : Controll
     }
 
     [HttpPut("{id}")]
-    [ProducesResponseType(200, Type = typeof(Lecture))]
-    [ProducesResponseType(400)]
-    [ProducesResponseType(404)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Lecture))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Lecture>> Put(int id, Lecture lecture)
     {
         var originalLecture = await lectureRepository.FindByIdAsync(id);
@@ -58,9 +73,9 @@ public class LecturesController(ILectureRepository lectureRepository) : Controll
     }
 
     [HttpDelete("{id}")]
-    [ProducesResponseType(200, Type = typeof(Lecture))]
-    [ProducesResponseType(400)]
-    [ProducesResponseType(404)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Lecture))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Lecture>> Delete(int id)
     {
         var lecture = await lectureRepository.FindByIdAsync(id);
