@@ -1,6 +1,9 @@
 using LectureEvaluation.Domain.Repositories;
+using LectureEvaluation.Domain.Services;
+using LectureEvaluation.Infrastructure.Repositories;
 using LectureEvaluation.Infrastructure.MockRepositories;
-using Microsoft.Extensions.FileSystemGlobbing.Internal.Patterns;
+using LectureEvaluation.Infrastructure.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,9 +12,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
+builder.Services.AddHttpClient();
 
-builder.Services.AddSingleton<IEvaluationRepository, MockEvaluationRepository>();
-builder.Services.AddSingleton<ILectureRepository, MockLectureRepository>();
+var connectionString = builder.Configuration.GetConnectionString("MySql");
+builder.Services.AddDbContext<MySqlDbContext>(options => 
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
+);
+
+// builder.Services.AddSingleton<IEvaluationRepository, MockEvaluationRepository>();
+// builder.Services.AddSingleton<ILectureRepository, MockLectureRepository>();
+builder.Services.AddScoped<ILectureRepository, LectureRepository>();
+builder.Services.AddScoped<IEvaluationRepository, EvaluationRepository>();
+builder.Services.AddScoped<IEvaluationSummaryService, EvaluationSummaryService>();
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 
 var app = builder.Build();

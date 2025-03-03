@@ -1,12 +1,14 @@
+using LectureEvaluation.Api.Models;
 using LectureEvaluation.Domain.Models;
 using LectureEvaluation.Domain.Repositories;
+using LectureEvaluation.Domain.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LectureEvaluation.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class LecturesController(ILectureRepository lectureRepository, IEvaluationRepository evaluationRepository) : ControllerBase
+public class LecturesController(ILectureRepository lectureRepository, IEvaluationRepository evaluationRepository, IEvaluationSummaryService evaluationSummaryService) : ControllerBase
 {
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Lecture>))]
@@ -43,6 +45,26 @@ public class LecturesController(ILectureRepository lectureRepository, IEvaluatio
         var evaluations = await evaluationRepository.FindByLectureAsync(lecture.Id);
         
         return Ok(evaluations);
+    }
+    
+    [HttpGet("{id}/evaluations/summary")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Evaluation>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<SummaryDto>> GetAllEvaluationsSummary(int id)
+    {
+        var lecture = await lectureRepository.FindByIdAsync(id);
+        
+        if (lecture is null)
+            return NotFound();
+        
+        var evaluations = await evaluationRepository.FindByLectureAsync(lecture.Id);
+        
+        
+        return Ok(new SummaryDto
+        {
+            Summary = await evaluationSummaryService.GetSummaryAsync(evaluations)
+        });
     }
 
     [HttpPost]
